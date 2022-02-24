@@ -70,9 +70,10 @@ func Scrape(cmd *cobra.Command, args []string) {
 		panic(err)
 	}
 
-	if err := os.WriteFile("scrape/scrape.json", m, 0666); err != nil {
+	if err := os.WriteFile("scrape.json", m, 0666); err != nil {
 		panic(err)
 	}
+	fmt.Printf("Output saved to 'scrape.json'\n")
 }
 
 func init() {
