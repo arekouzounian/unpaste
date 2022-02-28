@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// rootCmd represents the base command when called without any subcommands
+// rootCmd represents the base command when called without any subcommandsgo
 var rootCmd = &cobra.Command{
 	Use:   "unpaste <flags> text",
 	Short: "Searches pastebin sites for text or patterns",

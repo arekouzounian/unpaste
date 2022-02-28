@@ -6,6 +6,7 @@ package cmd
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -16,7 +17,8 @@ import (
 )
 
 const (
-	URL = "http://pastebin.com/archive"
+	URL          = "http://pastebin.com/archive"
+	DEFAULT_FILE = "scrape.json"
 )
 
 // scrapeCmd represents the scrape command
@@ -29,21 +31,66 @@ and usage of using your command. For example:
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
-	Run: Scrape,
+	Run: func(cmd *cobra.Command, args []string) {
+
+		out, err := cmd.Flags().GetString("file")
+		if err != nil {
+			panic(err)
+		}
+		if out == DEFAULT_FILE && len(args) >= 1 {
+			fmt.Println("Too many arguments!")
+			return
+		}
+
+		lst, err := runScrape()
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+
+		m, err := json.Marshal(ArchiveLinkEntry{
+			Number: 0,
+			List:   lst,
+		})
+
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+
+		cast := string(m)
+		if exists(out) {
+			cast = "," + cast
+		}
+
+		f, err := os.OpenFile(out, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			panic(err)
+		}
+		if _, err := f.WriteString(cast); err != nil {
+			f.Close()
+			panic(err)
+		}
+		if err := f.Close(); err != nil {
+			panic(err)
+		}
+
+		fmt.Println("output saved to", out)
+
+	},
 }
 
-func Scrape(cmd *cobra.Command, args []string) {
+func runScrape() ([]ArchiveLink, error) {
 	resp, err := http.Get(URL)
 	if err != nil {
-		fmt.Println(err.Error())
-		return
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
 		fmt.Println(err.Error())
-		return
+		return nil, err
 	}
 
 	rows := doc.Find("td")
@@ -51,29 +98,27 @@ func Scrape(cmd *cobra.Command, args []string) {
 	currKey := ""
 	rows.Each(func(i int, s *goquery.Selection) {
 		key, exists := s.Find("a").Attr("href")
-		if exists {
-			if key != "" {
-				if !strings.Contains(key, "archive") {
-					currKey = key
-				} else {
-					lst = append(lst, ArchiveLink{
-						Key:            currKey,
-						GroupDirectory: key,
-					})
-				}
+		if exists && key != "" {
+			if !strings.Contains(key, "archive") {
+				currKey = key
+			} else {
+				lst = append(lst, ArchiveLink{
+					Key:            currKey,
+					GroupDirectory: key,
+				})
 			}
 		}
 	})
 
-	m, err := json.Marshal(lst)
-	if err != nil {
-		panic(err)
-	}
+	return lst, nil
+	/*
+		m, err := json.Marshal(lst)
+		if err != nil {
+			panic(err)
+		}
 
-	if err := os.WriteFile("scrape.json", m, 0666); err != nil {
-		panic(err)
-	}
-	fmt.Printf("Output saved to 'scrape.json'\n")
+		return m, nil
+	*/
 }
 
 func init() {
@@ -88,4 +133,11 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// scrapeCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	scrapeCmd.Flags().StringP("file", "f", DEFAULT_FILE, "Output file for the scrape to be saved to.")
+	scrapeCmd.Flags().BoolP("loop", "l", false, "Sets the scraper to loop, executing once every minute.")
+}
+
+func exists(fname string) bool {
+	_, err := os.Stat(fname)
+	return !errors.Is(err, os.ErrNotExist)
 }
