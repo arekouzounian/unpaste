@@ -38,8 +38,7 @@ to quickly create a Cobra application.`,
 			panic(err)
 		}
 		if out == DEFAULT_FILE && len(args) >= 1 {
-			fmt.Println("Too many arguments!")
-			return
+			out = args[0]
 		}
 
 		lst, err := runScrape()
@@ -111,14 +110,6 @@ func runScrape() ([]ArchiveLink, error) {
 	})
 
 	return lst, nil
-	/*
-		m, err := json.Marshal(lst)
-		if err != nil {
-			panic(err)
-		}
-
-		return m, nil
-	*/
 }
 
 func init() {
@@ -133,8 +124,9 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// scrapeCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	scrapeCmd.Flags().StringP("file", "f", DEFAULT_FILE, "Output file for the scrape to be saved to.")
+	scrapeCmd.Flags().StringP("output", "o", DEFAULT_FILE, "Output file for the scrape to be saved to.")
 	scrapeCmd.Flags().BoolP("loop", "l", false, "Sets the scraper to loop, executing once every minute.")
+	scrapeCmd.Flags().BoolP("aggregate-data", "a", false, "Stores the entire text of the paste, rather than just the key")
 }
 
 func exists(fname string) bool {
