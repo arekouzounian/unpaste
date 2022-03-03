@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -33,7 +34,7 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		out, err := cmd.Flags().GetString("file")
+		out, err := cmd.Flags().GetString("output")
 		if err != nil {
 			panic(err)
 		}
@@ -47,39 +48,43 @@ to quickly create a Cobra application.`,
 			return
 		}
 
-		m, err := json.Marshal(ArchiveLinkEntry{
-			Number: 0,
-			List:   lst,
-		})
-
-		if err != nil {
-			fmt.Println(err.Error())
-			return
-		}
-
-		cast := string(m)
 		if exists(out) {
-			cast = "," + cast
+			old_data, err := ioutil.ReadFile(out)
+			if err != nil {
+				fmt.Printf("Error reading file '%s': %s\n", out, err.Error())
+				return
+			}
+
+			var prev ArchiveList
+			jerr := json.Unmarshal(old_data, &prev)
+			if jerr != nil {
+				panic(err)
+			}
+
+			for idx, item := range prev {
+				if lst[idx] == item {
+					continue
+				}
+				lst = append(lst, item)
+			}
+
 		}
 
-		f, err := os.OpenFile(out, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		m, err := json.Marshal(lst)
 		if err != nil {
 			panic(err)
 		}
-		if _, err := f.WriteString(cast); err != nil {
-			f.Close()
-			panic(err)
-		}
-		if err := f.Close(); err != nil {
-			panic(err)
+
+		werr := os.WriteFile(out, m, 0644)
+		if werr != nil {
+			fmt.Printf("Error writing to file '%s': %s\n", out, werr.Error())
 		}
 
 		fmt.Println("output saved to", out)
-
 	},
 }
 
-func runScrape() ([]ArchiveLink, error) {
+func runScrape() (ArchiveList, error) {
 	resp, err := http.Get(URL)
 	if err != nil {
 		return nil, err

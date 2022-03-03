@@ -19,7 +19,4 @@ type ArchiveLink struct {
 	GroupDirectory string `json:"group_dir"`
 }
 
-type ArchiveLinkEntry struct {
-	Number int           `json:"index"`
-	List   []ArchiveLink `json:"list"`
-}
+type ArchiveList []ArchiveLink
