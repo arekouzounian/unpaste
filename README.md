@@ -2,40 +2,31 @@
 A CLI tool written in Go designed to search sites like pastebin
 
 Basic idea:
-- takes in API keys and URLs via some file such as keys.json
-- takes in text and/or date ranges 
-- query online API's with the given input
-
-# Features:
-- text search 
-- user search (API key required)
-- user text search (API key required)
-- regex search 
-- output to a file 
-- extendible to other API's using Go's typing system 
-- getting raw pastes from a user
-- scrape mode (continuously monitors for new pastes and saves the keys )
+- sends queries to pastebin periodically
+- stores the responses into a manageable JSON file
+- able to perform text and category searches
+- you can search the stored pastes via regex or by category (which language it's written in)
+- rather than storing (potentially) large chunks of text into json files and/or memory, the paste keys are stored and re-queried on the fly 
 
 Mock usage:
 ```shell
-    $ unpaste text "print('hello, world!')"
+    $ unpaste scrape 
 ```
-```shell
-    $ unpaste grep [regex pattern] -o path/to/output/file.txt 
-```
+This is a one-time usage of the command, and by default saves the output to 'scrape.json'
 
-## NOTE: as this tool works without a PRO account, it needs to search pastes without having access to the scraping API
-the way this will be achieved is:
-- by getting new paste keys from the archive on the fly
-- repeatedly scraping new pastes from the archive as they are added, and storing them into a file
+```shell
+    $ unpaste loop -o path/to/output.json 
+```
+This will loop the command on a default interval of 5 minutes 
+### NOTE: The loop interval can be changed but only to a minimum of 2 minutes per call.
+
+```shell
+    $ unpaste search -r [regex pattern] 
+``` 
+**NOT IMPLEMENTED YET**
+Performs a text search on the stored pastes, performing API calls on the fly and printing out any matching regex patterns.
+
 
 ### IDEAS
-- sort scraped links by langauge? 
-- sort by user? 
-- anything else?
-
-## Commands
-- keys (-a to add, -l to list, -r to remove)
-- text (-o for output file)
-- grep (-o for output file)
-- scrape (-t timeout (default is 5 minutes), -o for output file (default is some file like scrape.json))
+- Perhaps extend this to other pastebin-like API's 
+- greppable output? 
