@@ -1,6 +1,18 @@
 # unpaste
 A CLI tool written in Go designed to search sites like pastebin
 
+## Disclaimer
+This tool is written for fun, and for me to practice writing Go. 
+As the tool is still in development, I don't recommend that you download and use the tool quite yet. 
+However, if you'd like to use the tool regardless, you could simply clone the repo and run it (provided Go is already installed on your system)
+```shell
+    $ git clone https://github.com/arekouzounian/unpaste.git && cd unpaste 
+
+    $ go build 
+    
+    $ ./unpaste <flags>
+```
+
 Basic idea:
 - sends queries to pastebin periodically
 - stores the responses into a manageable JSON file
@@ -30,3 +42,4 @@ Performs a text search on the stored pastes, performing API calls on the fly and
 ### IDEAS
 - Perhaps extend this to other pastebin-like API's 
 - greppable output? 
+
