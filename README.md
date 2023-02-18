@@ -32,6 +32,12 @@ This is a one-time usage of the command, and by default saves the output to 'scr
 This will loop the command on a default interval of 5 minutes 
 ### NOTE: The loop interval can be changed but only to a minimum of 2 minutes per call.
 
+Demo tape (WIP): 
+![](out.gif)
+
+
+
+
 ```shell
     $ unpaste search -r [regex pattern] 
 ``` 
